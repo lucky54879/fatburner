@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FatBurner Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { background: #222; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
+        button { padding: 12px 24px; font-size: 16px; margin: 10px; background: #FF6B35; border: none; color: white; border-radius: 6px; }
+        .status { margin-top: 20px; font-size: 14px; opacity: 0.9; white-space: pre-wrap; text-align: left; max-width: 300px; margin-left: auto; margin-right: auto; }
+        .warning { color: #ff8888; }
+    </style>
+</head>
+<body>
+    <h1>🔥 FatBurner Pro</h1>
+    <p>Гиря 20 кг • OMAD • Колени • Таз</p>
+    <button onclick="requestPermission()">🔔 Включить напоминания</button>
+    <button onclick="testNotification()">🧪 Тест уведомления</button>
+    <div class="status" id="status">Загрузка...</div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+
+        // 1. Проверка безопасного контекста
+        if (!window.isSecureContext) {
+            statusEl.innerHTML = '❌ <span class="warning">Небезопасный контекст!</span>\n\n' +
+                'Вы открыли файл напрямую (file://).\n' +
+                'Chrome блокирует уведомления.\n\n' +
+                '👉 Нужно открыть приложение по HTTPS:\n' +
+                '   • Загрузи файлы на GitHub Pages\n' +
+                '   • Или используй локальный сервер\n\n' +
+                'После этого кнопка «Включить» заработает.';
+        }
+
+        // Регистрируем Service Worker (только в безопасном контексте)
+        if ('serviceWorker' in navigator && window.isSecureContext) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => {
+                    console.log('SW зарегистрирован', reg);
+                    statusEl.textContent += '\n✅ Service Worker активен.';
+                })
+                .catch(err => {
+                    console.error('Ошибка SW', err);
+                    statusEl.textContent += '\n❌ Ошибка регистрации SW: ' + err.message;
+                });
+        } else if ('serviceWorker' in navigator && !window.isSecureContext) {
+            statusEl.textContent += '\n⚠️ Service Worker не зарегистрирован (небезопасный контекст).';
+        }
+
+        function requestPermission() {
+            if (!window.isSecureContext) {
+                alert('Нельзя запросить разрешение: нет HTTPS.\nОткройте приложение через GitHub Pages или локальный сервер (http://localhost).');
+                return;
+            }
+            if (!("Notification" in window)) {
+                alert("Уведомления не поддерживаются");
+                return;
+            }
+            Notification.requestPermission().then(perm => {
+                statusEl.textContent = 
+                    perm === "granted" ? "✅ Уведомления включены" : "❌ Разрешение не получено (нажмите ещё раз или проверьте настройки браузера)";
+                if (perm === "granted" && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
+                } else if (perm === "granted") {
+                    statusEl.textContent += '\n⚠️ Service Worker не контролирует страницу. Попробуйте перезагрузить приложение.';
+                }
+            });
+        }
+
+        function testNotification() {
+            if (Notification.permission === "granted") {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification("Тест", { body: "Уведомления работают! Жир горит 🔥", icon: "🔥" });
+                }).catch(() => {
+                    new Notification("Тест", { body: "Уведомления работают (без SW) 🔥" });
+                });
+            } else {
+                alert("Сначала разреши уведомления кнопкой выше");
+            }
+        }
+
+        if (Notification.permission === "granted" && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
+            statusEl.textContent = '✅ Разрешение уже дано, расписание активно.';
+        }
+    </script>
+</body>
+</html>
