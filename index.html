@@ -41,7 +41,6 @@
         th { color: #FF6B35; }
         .nutrition-day, .training-day { margin-top: 16px; padding: 12px; background: #2a2a2a; border-radius: 8px; }
         .recipe-box, .training-box { background: #1e1e1e; padding: 10px; border-radius: 6px; margin-top: 8px; white-space: pre-wrap; font-size: 14px; }
-        .lunch-status { font-size: 14px; margin: 4px 0; }
     </style>
 </head>
 <body>
@@ -64,7 +63,7 @@
     <div id="today" class="content active">
         <div class="switch-container">
             <label class="switch">
-                <input type="checkbox" id="lunchToggleToday" onchange="toggleLunchToday()">
+                <input type="checkbox" id="lunchToggleToday" onchange="toggleLunch('today')">
                 <span class="slider"></span>
             </label>
             <span>Обедаю сегодня</span>
@@ -86,18 +85,18 @@
     <!-- Питание -->
     <div id="nutrition" class="content">
         <h3>Меню на текущую неделю</h3>
+        <div class="switch-container">
+            <label class="switch">
+                <input type="checkbox" id="lunchToggleNutrition" onchange="toggleLunch('nutrition')">
+                <span class="slider"></span>
+            </label>
+            <span>Обедаю сегодня</span>
+        </div>
         <p id="weekLabel"></p>
         <div id="nutritionContent"></div>
         <div class="calendar-controls" style="margin-top:20px;">
             <input type="date" id="historyDate">
             <button onclick="showHistoryMenu()">📖 Показать меню на дату</button>
-        </div>
-        <div class="switch-container" style="margin-top: 12px;">
-            <label class="switch">
-                <input type="checkbox" id="lunchToggleHistory" onchange="toggleLunchHistory()">
-                <span class="slider"></span>
-            </label>
-            <span>Обедал в выбранный день</span>
         </div>
         <div id="historyMenu" class="nutrition-day"></div>
     </div>
@@ -151,7 +150,6 @@
             return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
         };
 
-        // Базовое расписание (без конкретики питания)
         const WEEKDAY_SCHEDULE_BASE = [
             { time: '05:30', text: 'Подъём, 2 стакана воды' },
             { time: '06:10', text: 'Выход из дома' },
@@ -178,7 +176,7 @@
             { time: '21:30', text: 'Подготовка ко сну' }
         ];
 
-        // ========== МЕНЮ (с рецептами) ==========
+        // ========== МЕНЮ НА 4 НЕДЕЛИ (с рецептами) ==========
         const MENU = {
             1: {
                 1: { omad: { desc: "Омлет из 4 яиц+2 белка с овощами, гречка 150г с маслом, творог 150г с орехами", recipe: "Взбей 4 яйца и 2 белка, добавь нарезанные шпинат, помидоры, кабачки. Жарь под крышкой 7-8 мин. Гречку отвари заранее, заправь сливочным маслом. Творог смешай с рублеными грецкими орехами и льняным семенем." },
@@ -210,13 +208,97 @@
                      trainingOmad: { desc: "Говядина 250г, рис/гречка 250г, салат, банан, кефир", recipe: "Как обычный воскресный ужин, порция полная." },
                      trainingLunch: { desc: "Обед: говядина 150г, рис 150г, банан. Ужин: яйца, овощи.", recipe: "Обед: половина стейка + рис + банан. Ужин: яйца с овощами." } }
             },
-            // Недели 2-4 заполнены аналогично (для краткости опущены, но в реальном коде присутствуют)
-            2: {}, 3: {}, 4: {}
+            2: {
+                1: { omad: { desc: "Яйца Бенедикт (2 яйца, ветчина, хлебцы), гречка 150г, творог 150г с мёдом", recipe: "Поджарь хлебцы, сверху положи ветчину и яйцо пашот. Полей сметанным соусом (сметана+горчица). Гречку отвари, творог смешай с мёдом." },
+                     lunch: { desc: "Обед: индейка 150г, булгур 150г, салат. Ужин: творожная запеканка.", recipe: "Обед: индейку запеки, булгур свари, салат. Ужин: запеканка (см. рецепт субботы)." },
+                     trainingOmad: { desc: "Яйца Бенедикт, гречка, творог, банан", recipe: "Как обычный пн + банан к творогу." },
+                     trainingLunch: { desc: "Обед: индейка 150г, булгур 150г, банан. Ужин: творожная запеканка.", recipe: "Обед: индейка+булгур+банан. Ужин: запеканка." } },
+                2: { omad: { desc: "Филе трески запечённое 300г, картофель 200г, зелёная фасоль", recipe: "Треску сбрызни лимоном, запекай 20 мин при 200°C. Отвари картофель, отдельно приготовь замороженную фасоль на пару или в микроволновке." },
+                     lunch: { desc: "Обед: треска 150г, картофель 100г, фасоль. Ужин: омлет с овощами.", recipe: "Обед: половина трески с картофелем и фасолью. Ужин: омлет из 2 яиц с помидорами." },
+                     trainingOmad: { desc: "Треска, картофель, фасоль, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: треска 150г, картофель 100г, фасоль, банан. Ужин: омлет.", recipe: "Обед: треска+картофель+фасоль+банан. Ужин: омлет." } },
+                3: { omad: { desc: "Салат с тунцом (тунец с/с, 2 яйца, авокадо, помидор, сметанная заправка), гречка 150г, орехи 30г", recipe: "Приготовь салат как в неделе 1, но добавь нарезанное авокадо. Заправка: сметана+горчица+лимон. Гречку отвари, посыпь орехами." },
+                     lunch: { desc: "Обед: половина салата + булгур 100г. Ужин: остаток салата + творог 150г.", recipe: "Раздели салат на два приёма, как в неделе 1." },
+                     trainingOmad: { desc: "Салат с тунцом (с авокадо), гречка, орехи, банан", recipe: "Как обычный салат + банан." },
+                     trainingLunch: { desc: "Обед: половина салата + булгур 100г, банан. Ужин: остаток + творог.", recipe: "Обед: половина салата+булгур+банан. Ужин: остаток+творог." } },
+                4: { omad: { desc: "Куриные бёдра без кожи запечённые 350г, тушёная капуста, яйцо", recipe: "Куриные бёдра запеки 35 мин при 200°C. Капусту потуши с луком и морковью. Яйцо свари вкрутую." },
+                     lunch: { desc: "Обед: куриное филе 150г, капуста, хлебцы. Ужин: творог с зеленью.", recipe: "Обед: курица+капуста+хлебцы. Ужин: творог с укропом." },
+                     trainingOmad: { desc: "Куриные бёдра, капуста, яйцо, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: курица 150г, капуста, банан. Ужин: творог.", recipe: "Обед: курица+капуста+банан. Ужин: творог." } },
+                5: { omad: { desc: "Скумбрия запечённая 200г, картофель 200г, морковь по-корейски (без сахара)", recipe: "Скумбрию натри специями, запекай 25 мин при 200°C. Картофель отвари. Морковь натри, добавь уксус, масло, перец (без сахара)." },
+                     lunch: { desc: "Обед: скумбрия 100г, картофель 100г, морковь. Ужин: яичница с помидорами.", recipe: "Обед: половина скумбрии с картофелем и морковью. Ужин: яичница." },
+                     trainingOmad: { desc: "Скумбрия, картофель, морковь, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: скумбрия 100г, картофель 100г, банан. Ужин: яичница.", recipe: "Обед: скумбрия+картофель+банан. Ужин: яичница." } },
+                6: { omad: { desc: "Ленивые вареники (творог, яйцо, мука), сметана 15% 50г, замороженные ягоды", recipe: "Смешай 300г творога, 1 яйцо, 2-3 ст.л. муки, щепотку соли. Сформируй колбаску, нарежь кусочками. Вари в кипящей воде 2 мин после всплытия. Подавай со сметаной и размороженными ягодами." },
+                     lunch: { desc: "Обед: творог 200г с ягодами, хлебец. Ужин: куриная грудка, салат.", recipe: "Обед: творог+ягоды+хлебец. Ужин: курица запечённая + салат." },
+                     trainingOmad: { desc: "Вареники, сметана, ягоды, банан", recipe: "Как обычные вареники, но добавь банан к ягодам." },
+                     trainingLunch: { desc: "Обед: творог 200г, ягоды, хлебец, банан. Ужин: куриная грудка, салат.", recipe: "Обед: творог+ягоды+хлебец+банан. Ужин: курица+салат." } },
+                0: { omad: { desc: "Стейк из свиной вырезки 250г, булгур 200г, стручковая фасоль, банан", recipe: "Свинину отбей, обжарь на сухой сковороде по 5 мин с каждой стороны. Булгур отвари, фасоль приготовь на пару. Съешь банан на десерт." },
+                     lunch: { desc: "Обед: свинина 150г, булгур 150г, фасоль. Ужин: творог 200г.", recipe: "Обед: половина стейка+булгур+фасоль. Ужин: творог." },
+                     trainingOmad: { desc: "Стейк из свинины 250г, булгур 200г, фасоль, банан", recipe: "Как обычный ужин, порция полная." },
+                     trainingLunch: { desc: "Обед: свинина 150г, булгур 150г, фасоль, банан. Ужин: творог.", recipe: "Обед: половина стейка+булгур+фасоль+банан. Ужин: творог." } }
+            },
+            3: {
+                1: { omad: { desc: "Омлет с шампиньонами и сыром, перловка 150г, творог 150г с орехами", recipe: "Шампиньоны обжарь, залей взбитыми 4 яйцами+2 белками, посыпь сыром. Запекай под крышкой 10 мин. Перловку отвари заранее. Творог с орехами." },
+                     lunch: { desc: "Обед: индейка 150г, перловка 150г, салат. Ужин: творог 200г.", recipe: "Обед: индейка+перловка+салат. Ужин: творог." },
+                     trainingOmad: { desc: "Омлет с грибами, перловка, творог, банан", recipe: "Как обычный омлет + банан к творогу." },
+                     trainingLunch: { desc: "Обед: индейка 150г, перловка 150г, банан. Ужин: творог.", recipe: "Обед: индейка+перловка+банан. Ужин: творог." } },
+                2: { omad: { desc: "Хек запечённый 300г, картофель 200г, салат из свёклы с орехами", recipe: "Хек сбрызни лимоном, запекай 20 мин. Картофель отвари. Свёклу запеки, натри, добавь орехи и масло." },
+                     lunch: { desc: "Обед: хек 150г, картофель 100г, свёкла. Ужин: яйца пашот с зеленью.", recipe: "Обед: половина хека+картофель+свёкла. Ужин: яйца пашот." },
+                     trainingOmad: { desc: "Хек, картофель, свёкла, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: хек 150г, картофель 100г, банан. Ужин: яйца.", recipe: "Обед: хек+картофель+банан. Ужин: яйца." } },
+                3: { omad: { desc: "Салат с тунцом (тунец с/с, 2 яйца, оливки, огурец, сметанная заправка), киноа 150г, орехи 30г", recipe: "Приготовь салат как обычно, но вместо маслин – оливки, добавь огурец. Заправка: сметана+горчица+лимон. Киноа отвари, посыпь орехами." },
+                     lunch: { desc: "Обед: половина салата + гречка 100г. Ужин: остаток + творог 150г.", recipe: "Раздели салат на два приёма." },
+                     trainingOmad: { desc: "Салат с тунцом, киноа, орехи, банан", recipe: "Как обычный салат + банан." },
+                     trainingLunch: { desc: "Обед: половина салата + гречка 100г, банан. Ужин: остаток + творог.", recipe: "Обед: половина салата+гречка+банан. Ужин: остаток+творог." } },
+                4: { omad: { desc: "Куриные крылья запечённые (без панировки) 350г, тушёная капуста с тмином, яйцо", recipe: "Крылья натри специями, запекай 40 мин. Капусту потуши с тмином. Яйцо свари вкрутую." },
+                     lunch: { desc: "Обед: куриное филе 150г, капуста, хлебцы. Ужин: творог с зеленью.", recipe: "Обед: курица+капуста+хлебцы. Ужин: творог с укропом." },
+                     trainingOmad: { desc: "Куриные крылья, капуста, яйцо, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: куриное филе 150г, капуста, банан. Ужин: творог.", recipe: "Обед: курица+капуста+банан. Ужин: творог." } },
+                5: { omad: { desc: "Селёдка под шубой (без майонеза, со сметаной 15%) 250г, картофель 200г", recipe: "Отвари свёклу, морковь, картофель, яйца. Натри по отдельности. Выложи слоями: картофель, селёдка кусочками, морковь, свёкла, яйца. Каждый слой промазывай сметаной с горчицей. Дай пропитаться 1 час." },
+                     lunch: { desc: "Обед: селёдка 100г, картофель 100г, овощи. Ужин: творог с ягодами.", recipe: "Обед: селёдка+картофель+овощи. Ужин: творог с ягодами." },
+                     trainingOmad: { desc: "Селёдка под шубой, картофель, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: селёдка 100г, картофель 100г, банан. Ужин: творог.", recipe: "Обед: селёдка+картофель+банан. Ужин: творог." } },
+                6: { omad: { desc: "Творожная запеканка с яблоками, орехи, салат из свежих овощей", recipe: "В базовый рецепт запеканки (300г творога, 2 яйца, манка) добавь нарезанное яблоко, корицу. Запекай 35 мин. Подавай с орехами и салатом." },
+                     lunch: { desc: "Обед: творог 200г с яблоком, хлебец. Ужин: куриная грудка, салат.", recipe: "Обед: творог+яблоко+хлебец. Ужин: курица+салат." },
+                     trainingOmad: { desc: "Запеканка с яблоками, орехи, салат, банан", recipe: "Как обычная запеканка + банан." },
+                     trainingLunch: { desc: "Обед: творог 200г, яблоко, хлебец, банан. Ужин: курица, салат.", recipe: "Обед: творог+яблоко+хлебец+банан. Ужин: курица+салат." } },
+                0: { omad: { desc: "Говядина тушёная с черносливом 250г, булгур 200г, салат из капусты, банан", recipe: "Говядину нарежь, обжарь, добавь воды и чернослив, туши 1.5 часа. Булгур отвари. Капусту нашинкуй, помни с солью." },
+                     lunch: { desc: "Обед: говядина 150г, булгур 150г, капуста. Ужин: творог 150г.", recipe: "Обед: половина тушёной говядины+булгур+капуста. Ужин: творог." },
+                     trainingOmad: { desc: "Говядина с черносливом, булгур, салат, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: говядина 150г, булгур 150г, банан. Ужин: творог.", recipe: "Обед: говядина+булгур+банан. Ужин: творог." } }
+            },
+            4: {
+                1: { omad: { desc: "Яичница-глазунья с помидорами, гречка 150г, творог 150г с семенами льна", recipe: "Помидоры обжарь, разбей 4 яйца+2 белка, жарь до готовности. Гречку отвари заранее. Творог смешай с льняным семенем." },
+                     lunch: { desc: "Обед: куриная грудка 150г, гречка 150г, салат. Ужин: творог 200г.", recipe: "Обед: курица+гречка+салат. Ужин: творог." },
+                     trainingOmad: { desc: "Яичница, гречка, творог, банан", recipe: "Как обычная яичница + банан к творогу." },
+                     trainingLunch: { desc: "Обед: курица 150г, гречка 150г, банан. Ужин: творог.", recipe: "Обед: курица+гречка+банан. Ужин: творог." } },
+                2: { omad: { desc: "Пангасиус запечённый 300г, картофель 200г, салат из морской капусты", recipe: "Пангасиус сбрызни лимоном, запекай 20 мин. Картофель отвари. Морскую капусту купи консервированную, смешай с маслом." },
+                     lunch: { desc: "Обед: пангасиус 150г, картофель 100г, морская капуста. Ужин: яйца пашот.", recipe: "Обед: половина рыбы+картофель+морская капуста. Ужин: яйца." },
+                     trainingOmad: { desc: "Пангасиус, картофель, морская капуста, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: пангасиус 150г, картофель 100г, банан. Ужин: яйца.", recipe: "Обед: рыба+картофель+банан. Ужин: яйца." } },
+                3: { omad: { desc: "Салат с тунцом (тунец с/с, 2 яйца, помидоры, маслины, сметанная заправка с паприкой), булгур 150г, орехи 30г", recipe: "Приготовь салат как обычно, но в заправку добавь паприку. Булгур отвари, посыпь орехами." },
+                     lunch: { desc: "Обед: половина салата + булгур 100г. Ужин: остаток + творог 150г.", recipe: "Раздели салат на два приёма." },
+                     trainingOmad: { desc: "Салат с тунцом, булгур, орехи, банан", recipe: "Как обычный салат + банан." },
+                     trainingLunch: { desc: "Обед: половина салата + булгур 100г, банан. Ужин: остаток + творог.", recipe: "Обед: половина салата+булгур+банан. Ужин: остаток+творог." } },
+                4: { omad: { desc: "Куриное филе запечённое с травами 300г, тушёная капуста, яйцо", recipe: "Филе натри травами, запекай 25 мин. Капусту потуши. Яйцо свари." },
+                     lunch: { desc: "Обед: куриное филе 150г, капуста, хлебцы. Ужин: омлет с овощами.", recipe: "Обед: половина филе+капуста+хлебцы. Ужин: омлет." },
+                     trainingOmad: { desc: "Куриное филе 300г, капуста, яйцо, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: курица 150г, капуста, банан. Ужин: омлет.", recipe: "Обед: курица+капуста+банан. Ужин: омлет." } },
+                5: { omad: { desc: "Сёмга слабосолёная 150г, картофель 200г, салат из свёклы с орехами, творог 100г", recipe: "Картофель отвари, свёклу запеки. Подавай сёмгу с картофелем и свёклой. Творог отдельно." },
+                     lunch: { desc: "Обед: сёмга 100г, картофель 100г, свёкла. Ужин: творожная запеканка.", recipe: "Обед: сёмга+картофель+свёкла. Ужин: запеканка (см. рецепт субботы)." },
+                     trainingOmad: { desc: "Сёмга, картофель, свёкла, творог, банан", recipe: "Как обычный ужин + банан." },
+                     trainingLunch: { desc: "Обед: сёмга 100г, картофель 100г, банан. Ужин: творог.", recipe: "Обед: сёмга+картофель+банан. Ужин: творог." } },
+                6: { omad: { desc: "Сырники из творога (300г творога, 1 яйцо, мука), сметана 15%, ягоды", recipe: "Смешай 300г творога, 1 яйцо, 2 ст.л. муки. Сформируй сырники, обжарь на сухой сковороде по 3 мин с каждой стороны. Подавай со сметаной и ягодами." },
+                     lunch: { desc: "Обед: творог 200г с ягодами, хлебцы. Ужин: куриная грудка, салат.", recipe: "Обед: творог+ягоды+хлебцы. Ужин: курица+салат." },
+                     trainingOmad: { desc: "Сырники, сметана, ягоды, банан", recipe: "Как обычные сырники + банан." },
+                     trainingLunch: { desc: "Обед: творог 200г, ягоды, хлебцы, банан. Ужин: курица, салат.", recipe: "Обед: творог+ягоды+хлебцы+банан. Ужин: курица+салат." } },
+                0: { omad: { desc: "Телятина запечённая 250г, рис с овощами 250г, банан, кефир", recipe: "Телятину запеки с травами 30 мин. Рис отвари с замороженной овощной смесью. Банан и кефир на десерт." },
+                     lunch: { desc: "Обед: телятина 150г, рис 150г, овощи. Ужин: яйца, салат.", recipe: "Обед: половина телятины+рис+овощи. Ужин: яйца+салат." },
+                     trainingOmad: { desc: "Телятина, рис, овощи, банан, кефир", recipe: "Как обычный ужин, полная порция." },
+                     trainingLunch: { desc: "Обед: телятина 150г, рис 150г, банан. Ужин: яйца, салат.", recipe: "Обед: телятина+рис+банан. Ужин: яйца+салат." } }
+            }
         };
-        for (let w = 2; w <= 4; w++) {
-            MENU[w] = JSON.parse(JSON.stringify(MENU[1]));
-            // В реальном приложении здесь модифицируем блюда для разнообразия
-        }
 
         // ========== ТРЕНИРОВКИ ==========
         const TRAINING_DETAILS = {
@@ -285,7 +367,6 @@
             localStorage.setItem(`dayState_${dateStr}`, JSON.stringify(state));
         }
 
-        // Построение расписания с учётом питания и тренировки
         function buildDaySchedule(dateStr) {
             const d = new Date(dateStr);
             const isSunday = d.getDay() === 0;
@@ -303,7 +384,7 @@
 
                 if (state.lunch) {
                     const coffeeIdx = schedule.findIndex(item => item.time === '12:00');
-                    if (coffeeIdx !== -1) schedule[coffeeIdx].text = `Кофе-брейк + обед: ${menu.desc.split('. Ужин:')[0]}`; // обеденная часть
+                    if (coffeeIdx !== -1) schedule[coffeeIdx].text = `Кофе-брейк + обед: ${menu.desc.split('. Ужин:')[0]}`;
                 }
             }
 
@@ -315,7 +396,6 @@
             return schedule;
         }
 
-        // ========== ОТРИСОВКА ЗАДАЧ ==========
         function renderTasks(containerId, schedule, dateStr) {
             const container = document.getElementById(containerId);
             container.innerHTML = schedule.map(item => {
@@ -358,7 +438,23 @@
             return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
         }
 
-        // ========== ВКЛАДКА СЕГОДНЯ ==========
+        function toggleLunch(source) {
+            const dateStr = todayStr();
+            const state = getDayState(dateStr);
+            const newVal = source === 'today' ? document.getElementById('lunchToggleToday').checked : document.getElementById('lunchToggleNutrition').checked;
+            state.lunch = newVal;
+            saveDayState(dateStr, state);
+            if (source === 'today') {
+                const nutritionToggle = document.getElementById('lunchToggleNutrition');
+                if (nutritionToggle) nutritionToggle.checked = newVal;
+            } else {
+                const todayToggle = document.getElementById('lunchToggleToday');
+                if (todayToggle) todayToggle.checked = newVal;
+            }
+            populateToday();
+            showNutrition();
+        }
+
         function populateToday() {
             const dateStr = todayStr();
             const state = getDayState(dateStr);
@@ -370,20 +466,6 @@
             document.getElementById('dayTitle').textContent = `${days[d.getDay()]}, ${dateStr}`;
         }
 
-        function toggleLunchToday() {
-            const dateStr = todayStr();
-            const state = getDayState(dateStr);
-            state.lunch = document.getElementById('lunchToggleToday').checked;
-            saveDayState(dateStr, state);
-            // Обновляем отображение сегодняшнего дня и синхронизируем тумблер в истории
-            populateToday();
-            if (document.getElementById('historyDate').value === dateStr) {
-                document.getElementById('lunchToggleHistory').checked = state.lunch;
-                showHistoryMenu(); // обновить меню истории
-            }
-        }
-
-        // ========== КАЛЕНДАРЬ ==========
         function loadCalendarDay() {
             const dateInput = document.getElementById('calendarDate');
             if (!dateInput.value) return;
@@ -392,10 +474,10 @@
             renderTasks('calendarTasks', schedule, dateStr);
         }
 
-        // ========== ПИТАНИЕ И ИСТОРИЯ ==========
         function showNutrition() {
             const dateStr = todayStr();
             const state = getDayState(dateStr);
+            document.getElementById('lunchToggleNutrition').checked = state.lunch;
             const trainingDay = isTrainingDay(dateStr);
             const menu = getDayMenu(dateStr, state.lunch, trainingDay);
             const week = ((getWeekNumber(dateStr) - 1) % 4) + 1;
@@ -403,9 +485,6 @@
             document.getElementById('nutritionContent').innerHTML =
                 `<p><b>${state.lunch ? 'С обедом' : 'OMAD'}${trainingDay ? ' (спорт)' : ''}:</b><br>${menu.desc}</p>
                  <div class="recipe-box"><b>🔪 Рецепт:</b><br>${menu.recipe.replace(/\n/g, '<br>')}</div>`;
-            // Синхронизируем тумблер обеда на сегодня
-            document.getElementById('lunchToggleHistory').checked = state.lunch;
-            document.getElementById('historyDate').value = dateStr;
         }
 
         function showHistoryMenu() {
@@ -416,33 +495,13 @@
             const trainingDay = isTrainingDay(dateStr);
             const menu = getDayMenu(dateStr, state.lunch, trainingDay);
             const week = ((getWeekNumber(dateStr) - 1) % 4) + 1;
-
             document.getElementById('historyMenu').innerHTML =
                 `<h4>Меню за ${dateStr} (неделя ${week})</h4>
                  <p><b>Режим:</b> ${state.lunch ? 'С обедом' : 'OMAD'} ${trainingDay ? '(спорт)' : ''}</p>
                  <p><b>Блюдо:</b> ${menu.desc}</p>
                  <div class="recipe-box"><b>🔪 Рецепт:</b><br>${menu.recipe.replace(/\n/g, '<br>')}</div>`;
-            // Обновляем тумблер истории
-            document.getElementById('lunchToggleHistory').checked = state.lunch;
         }
 
-        function toggleLunchHistory() {
-            const dateInput = document.getElementById('historyDate');
-            if (!dateInput.value) return;
-            const dateStr = dateInput.value;
-            const state = getDayState(dateStr);
-            state.lunch = document.getElementById('lunchToggleHistory').checked;
-            saveDayState(dateStr, state);
-            // Если меняем сегодняшнюю дату, синхронизируем тумблер во вкладке Сегодня
-            if (dateStr === todayStr()) {
-                document.getElementById('lunchToggleToday').checked = state.lunch;
-                populateToday();
-            }
-            // Обновляем отображение истории
-            showHistoryMenu();
-        }
-
-        // ========== ТРЕНИРОВКА ==========
         function showTrainingForDate() {
             const dateInput = document.getElementById('trainingDate');
             if (!dateInput.value) return;
@@ -511,7 +570,7 @@
                 : 'Тренировка не отмечена';
         }
 
-        // ========== СПИСОК ЗАКУПКИ ==========
+        // ========== ЗАКУПКА ==========
         const shoppingList = [
             { name: "Яйца куриные С0", qty: "4 десятка (40 шт.)", shop: "Магнит", price: 320 },
             { name: "Куриное филе / голени / бёдра / крылья", qty: "2,5 кг", shop: "Пятёрочка", price: 625 },
@@ -520,16 +579,16 @@
             { name: "Минтай / треска / хек / пангасиус заморож.", qty: "1,2 кг", shop: "Магнит", price: 300 },
             { name: "Скумбрия запечённая / свежеморож.", qty: "0,2 кг", shop: "Пятёрочка", price: 60 },
             { name: "Селёдка слабосолёная", qty: "0,5 кг", shop: "Магнит", price: 200 },
-            { name: "Сёмга слабосолёная", qty: "0,15 кг", shop: "Магнит", price: 225 },
+            { name: "Сёмга слабосолёная", qty: "150 г (нарезка)", shop: "Магнит", price: 225 },
             { name: "Тунец консервированный в с/с", qty: "4 банки (185 г)", shop: "Пятёрочка", price: 480 },
             { name: "Ветчина", qty: "100 г", shop: "Магнит", price: 40 },
             { name: "Творог 5%", qty: "2,5 кг", shop: "Магнит", price: 700 },
             { name: "Сметана 15%", qty: "400 г", shop: "Пятёрочка", price: 90 },
             { name: "Кефир 1%", qty: "0,5 л", shop: "Магнит", price: 35 },
             { name: "Сыр (российский)", qty: "50 г", shop: "Пятёрочка", price: 25 },
-            { name: "Масло сливочное", qty: "50 г", shop: "Магнит", price: 40 },
-            { name: "Масло оливковое", qty: "0,5 л", shop: "Пятёрочка", price: 350 },
-            { name: "Гречка", qty: "1 кг", shop: "Магнит", price: 55 },
+            { name: "Масло сливочное", qty: "50 г (часть пачки)", shop: "Магнит", price: 40 },
+            { name: "Масло оливковое", qty: "0,5 л (бутылка)", shop: "Пятёрочка", price: 350 },
+            { name: "Гречка", qty: "1 кг (пакет)", shop: "Магнит", price: 55 },
             { name: "Рис / булгур / киноа / перловка", qty: "1,5 кг (в ассорт.)", shop: "Пятёрочка", price: 220 },
             { name: "Картофель", qty: "2 кг", shop: "Магнит", price: 60 },
             { name: "Свёкла", qty: "1 кг", shop: "Магнит", price: 35 },
@@ -539,23 +598,23 @@
             { name: "Огурцы", qty: "0,5 кг", shop: "Пятёрочка", price: 60 },
             { name: "Зелень (укроп, петрушка, салат)", qty: "несколько пучков", shop: "Пятёрочка", price: 150 },
             { name: "Шампиньоны", qty: "200 г", shop: "Магнит", price: 50 },
-            { name: "Зелёная фасоль (заморож.)", qty: "400 г", shop: "Пятёрочка", price: 120 },
+            { name: "Зелёная фасоль (заморож.)", qty: "400 г (пакет)", shop: "Пятёрочка", price: 120 },
             { name: "Морская капуста консерв.", qty: "1 банка", shop: "Магнит", price: 70 },
             { name: "Лимон", qty: "4 шт.", shop: "Магнит", price: 80 },
             { name: "Авокадо", qty: "1 шт.", shop: "Пятёрочка", price: 100 },
             { name: "Яблоки", qty: "2 шт.", shop: "Магнит", price: 30 },
             { name: "Бананы", qty: "6 шт. (≈1,5 кг)", shop: "Магнит", price: 135 },
-            { name: "Ягоды замороженные", qty: "400 г", shop: "Пятёрочка", price: 250 },
-            { name: "Чернослив", qty: "50 г", shop: "Магнит", price: 13 },
-            { name: "Оливки / маслины без косточек", qty: "1 банка", shop: "Магнит", price: 95 },
-            { name: "Орехи грецкие / миндаль", qty: "400 г", shop: "Пятёрочка", price: 280 },
-            { name: "Тыквенные семечки", qty: "100 г", shop: "Магнит", price: 30 },
-            { name: "Льняное семя", qty: "50 г", shop: "Пятёрочка", price: 10 },
-            { name: "Мука пшеничная", qty: "200 г", shop: "Магнит", price: 8 },
-            { name: "Мёд натуральный", qty: "50 г", shop: "Пятёрочка", price: 15 },
-            { name: "Горчица", qty: "1 уп.", shop: "Магнит", price: 45 },
-            { name: "Паприка, тмин, специи", qty: "по вкусу", shop: "Пятёрочка", price: 50 },
-            { name: "Хлебцы цельнозерновые", qty: "1 уп.", shop: "Магнит", price: 55 }
+            { name: "Ягоды замороженные", qty: "400 г (пакет)", shop: "Пятёрочка", price: 250 },
+            { name: "Чернослив", qty: "50 г (развес)", shop: "Магнит", price: 13 },
+            { name: "Оливки / маслины без косточек", qty: "1 банка (200 г)", shop: "Магнит", price: 95 },
+            { name: "Орехи грецкие / миндаль", qty: "400 г (развес)", shop: "Пятёрочка", price: 280 },
+            { name: "Тыквенные семечки", qty: "100 г (развес)", shop: "Магнит", price: 30 },
+            { name: "Льняное семя", qty: "50 г (развес)", shop: "Пятёрочка", price: 10 },
+            { name: "Мука пшеничная", qty: "200 г (часть пачки)", shop: "Магнит", price: 8 },
+            { name: "Мёд натуральный", qty: "1 банка (200 г)", shop: "Пятёрочка", price: 60 },
+            { name: "Горчица", qty: "1 банка (100 г)", shop: "Магнит", price: 45 },
+            { name: "Паприка, тмин, специи", qty: "по 1 упаковке", shop: "Пятёрочка", price: 50 },
+            { name: "Хлебцы цельнозерновые", qty: "1 упаковка", shop: "Магнит", price: 55 }
         ];
 
         function renderShoppingList() {
@@ -569,13 +628,11 @@
                 <td>ИТОГО</td><td></td><td></td><td>≈ ${total} ₽</td></tr>`;
         }
 
-        // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
         function switchTab(tabId) {
             document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
-
             if (tabId === 'today') populateToday();
             if (tabId === 'calendar') {
                 document.getElementById('calendarDate').value = todayStr();
@@ -583,6 +640,8 @@
             }
             if (tabId === 'nutrition') {
                 document.getElementById('historyDate').value = todayStr();
+                const state = getDayState(todayStr());
+                document.getElementById('lunchToggleNutrition').checked = state.lunch;
                 showNutrition();
             }
             if (tabId === 'training') {
@@ -616,7 +675,6 @@
             } else alert("Разрешите уведомления");
         }
 
-        // ========== СТАРТ ==========
         populateToday();
         if (Notification.permission === 'granted' && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
