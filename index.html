@@ -36,6 +36,10 @@
         .calendar-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
         .calendar-controls input[type="date"] { background: #2a2a2a; border: 1px solid #555; color: #eee; padding: 10px; border-radius: 6px; font-size: 16px; }
         select, textarea { background: #1e1e1e; border: 1px solid #555; color: #eee; padding: 8px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #444; }
+        th { color: #FF6B35; }
+        .nutrition-day { margin-top: 16px; padding: 12px; background: #2a2a2a; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -51,6 +55,7 @@
         <div class="tab" onclick="switchTab('calendar')">🗓️ Календарь</div>
         <div class="tab" onclick="switchTab('nutrition')">🍽 Питание</div>
         <div class="tab" onclick="switchTab('training')">🏋️ Тренировка</div>
+        <div class="tab" onclick="switchTab('shopping')">🛒 Закупка</div>
     </div>
 
     <!-- Сегодня -->
@@ -81,7 +86,11 @@
         <h3>Меню на текущую неделю</h3>
         <p id="weekLabel"></p>
         <div id="nutritionContent"></div>
-        <p style="font-size:12px; opacity:0.7;">*При включённом «Обедаю» применяется вариант с обедом и ужином.</p>
+        <div class="calendar-controls" style="margin-top:20px;">
+            <input type="date" id="historyDate">
+            <button onclick="showHistoryMenu()">📖 Показать меню на дату</button>
+        </div>
+        <div id="historyMenu" class="nutrition-day"></div>
     </div>
 
     <!-- Тренировка -->
@@ -110,6 +119,50 @@
         <p style="font-size:12px; opacity:0.7;">*При переносе питание следующего дня станет спортивным.</p>
     </div>
 
+    <!-- Закупка продуктов -->
+    <div id="shopping" class="content">
+        <h3>Список продуктов на месяц (4 недели, OMAD)</h3>
+        <p style="font-size:14px; opacity:0.8;">Цены ориентировочные, средние по рынку. При режиме с обедами может понадобиться немного больше.</p>
+        <table>
+            <thead><tr><th>Продукт</th><th>Кол-во (вес/объём)</th><th>Примерная цена</th></tr></thead>
+            <tbody>
+                <tr><td>Яйца куриные</td><td>60 шт.</td><td>300 ₽</td></tr>
+                <tr><td>Куриное филе / голени / бёдра</td><td>4 кг</td><td>1000 ₽</td></tr>
+                <tr><td>Говядина (нежирная)</td><td>2 кг</td><td>1200 ₽</td></tr>
+                <tr><td>Свиная вырезка / телятина</td><td>1.5 кг</td><td>800 ₽</td></tr>
+                <tr><td>Минтай / треска / хек (филе)</td><td>2 кг</td><td>600 ₽</td></tr>
+                <tr><td>Сёмга / форель слабосолёная</td><td>0.6 кг</td><td>500 ₽</td></tr>
+                <tr><td>Селёдка слабосолёная</td><td>0.8 кг</td><td>300 ₽</td></tr>
+                <tr><td>Скумбрия запечённая / консервы</td><td>0.8 кг</td><td>300 ₽</td></tr>
+                <tr><td>Тунец консервированный в с/с</td><td>8 банок (185 г)</td><td>800 ₽</td></tr>
+                <tr><td>Творог 5%</td><td>5 кг</td><td>1000 ₽</td></tr>
+                <tr><td>Сметана 15%</td><td>1 л</td><td>200 ₽</td></tr>
+                <tr><td>Кефир 1%</td><td>2 л</td><td>150 ₽</td></tr>
+                <tr><td>Гречка</td><td>3 кг</td><td>250 ₽</td></tr>
+                <tr><td>Рис / булгур / киноа / перловка</td><td>4 кг (в ассортименте)</td><td>400 ₽</td></tr>
+                <tr><td>Картофель</td><td>8 кг</td><td>300 ₽</td></tr>
+                <tr><td>Батат</td><td>2 кг</td><td>200 ₽</td></tr>
+                <tr><td>Капуста белокочанная / квашеная</td><td>4 кг</td><td>200 ₽</td></tr>
+                <tr><td>Свёкла</td><td>3 кг</td><td>150 ₽</td></tr>
+                <tr><td>Морковь</td><td>2 кг</td><td>100 ₽</td></tr>
+                <tr><td>Помидоры</td><td>3 кг</td><td>500 ₽</td></tr>
+                <tr><td>Огурцы</td><td>2 кг</td><td>300 ₽</td></tr>
+                <tr><td>Зелень (петрушка, укроп, салат)</td><td>—</td><td>300 ₽</td></tr>
+                <tr><td>Бананы</td><td>12 шт. (ок. 2 кг)</td><td>200 ₽</td></tr>
+                <tr><td>Яблоки / ягоды замороженные</td><td>1.5 кг</td><td>300 ₽</td></tr>
+                <tr><td>Орехи (грецкие, миндаль)</td><td>1 кг</td><td>800 ₽</td></tr>
+                <tr><td>Тыквенные семечки</td><td>0.3 кг</td><td>150 ₽</td></tr>
+                <tr><td>Льняное семя</td><td>0.3 кг</td><td>100 ₽</td></tr>
+                <tr><td>Оливковое масло</td><td>0.5 л</td><td>250 ₽</td></tr>
+                <tr><td>Сливочное масло</td><td>0.2 кг</td><td>150 ₽</td></tr>
+                <tr><td>Маслины без косточек</td><td>1 банка</td><td>100 ₽</td></tr>
+                <tr><td>Горчица, лимонный сок, специи</td><td>—</td><td>200 ₽</td></tr>
+                <tr style="font-weight:bold; border-top: 2px solid #FF6B35;"><td>ИТОГО</td><td></td><td>≈ 14 500 ₽</td></tr>
+            </tbody>
+        </table>
+        <p style="margin-top:12px; font-size:12px; opacity:0.7;">*Список покрывает все блюда меню на 4 недели. При добавлении обедов можно увеличить количество курицы, круп и овощей на 20-30%.</p>
+    </div>
+
     <script>
         // ========== ГЛОБАЛЬНЫЕ ДАННЫЕ ==========
         const todayStr = () => new Date().toISOString().split('T')[0];
@@ -121,7 +174,6 @@
             return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
         };
 
-        // Базовое расписание буднего дня (новый график)
         const WEEKDAY_SCHEDULE = [
             { time: '05:30', text: 'Подъём, 2 стакана воды' },
             { time: '06:10', text: 'Выход из дома' },
@@ -148,40 +200,134 @@
             { time: '21:30', text: 'Подготовка ко сну' }
         ];
 
-        // Меню по неделям (1-4) и дням (0 вс, 1 пн, ... 6 сб)
+        // Меню на 4 недели (индексы 1..4), дни 0..6 (вс, пн, вт, ср, чт, пт, сб)
         const MENU = {
-            1: { // Неделя 1
+            1: {
                 1: { omad: "Омлет из 4 яиц+2 белка с овощами, гречка 150г с маслом, творог 150г с орехами",
-                     lunch: "Обед: куриная грудка 150г, гречка 150г, салат. Ужин: рыба/творог 200г, овощи." },
+                     lunch: "Обед: куриная грудка 150г, гречка 150г, салат. Ужин: рыба/творог 200г, овощи.",
+                     trainingOmad: "Омлет, гречка, творог (спорт-вариант: добавлен банан)",
+                     trainingLunch: "Обед: курица 150г, гречка 150г, банан. Ужин: творог 200г, овощи." },
                 2: { omad: "Минтай запечённый 300г, картофель 200г, свёкла с маслом",
-                     lunch: "Обед: минтай 150г, картофель 100г, овощи. Ужин: яйца/творог, салат." },
+                     lunch: "Обед: минтай 150г, картофель 100г, овощи. Ужин: яйца/творог, салат.",
+                     trainingOmad: "Минтай 300г, картофель 200г, свёкла, банан",
+                     trainingLunch: "Обед: минтай 150г, картофель 100г, овощи. Ужин: творог 200г, банан." },
                 3: { omad: "Салат с тунцом (тунец в с/с 185г, 2 яйца, 5 маслин, помидор, заправка: сметана 15% 50г + горчица + лимон, зелень), киноа 200г, орехи 30г",
-                     lunch: "Обед: половина салата с тунцом (сметанная заправка) + гречка 100г. Ужин: оставшаяся половина салата + творог 150г." },
+                     lunch: "Обед: половина салата с тунцом (сметанная заправка) + гречка 100г. Ужин: оставшаяся половина салата + творог 150г.",
+                     trainingOmad: "Салат с тунцом, киноа, орехи, банан",
+                     trainingLunch: "Обед: половина салата + гречка 100г, банан. Ужин: оставшаяся половина салата + творог." },
                 4: { omad: "Куриные голени запечённые 350г, квашеная капуста 200г, яйцо, тыквенные семечки",
-                     lunch: "Обед: куриное филе 150г, капуста, хлебец. Ужин: яичница с овощами." },
+                     lunch: "Обед: куриное филе 150г, капуста, хлебец. Ужин: яичница с овощами.",
+                     trainingOmad: "Куриные голени 350г, капуста, яйцо, семечки, банан",
+                     trainingLunch: "Обед: куриное филе 150г, капуста, банан. Ужин: яичница с овощами." },
                 5: { omad: "Селёдка 200г, картофель 200г, свёкла, творог 100г",
-                     lunch: "Обед: селёдка 100г, картофель 100г, салат. Ужин: творожная запеканка." },
+                     lunch: "Обед: селёдка 100г, картофель 100г, салат. Ужин: творожная запеканка.",
+                     trainingOmad: "Селёдка 200г, картофель 200г, свёкла, творог 100г, банан",
+                     trainingLunch: "Обед: селёдка 100г, картофель 100г, салат, банан. Ужин: творог." },
                 6: { omad: "Творожная запеканка (300г творога, 2 яйца), орехи, салат из помидоров",
-                     lunch: "Обед: творог 200г с ягодами, хлебец. Ужин: куриная грудка, овощи." },
+                     lunch: "Обед: творог 200г с ягодами, хлебец. Ужин: куриная грудка, овощи.",
+                     trainingOmad: "Творожная запеканка, орехи, салат, банан",
+                     trainingLunch: "Обед: творог 200г, ягоды, хлебец, банан. Ужин: куриная грудка, овощи." },
                 0: { omad: "Говядина 250г, рис/гречка 250г, салат, банан, кефир",
-                     lunch: "Обед: говядина 150г, рис 150г. Ужин: яйца, овощи." }
+                     lunch: "Обед: говядина 150г, рис 150г. Ужин: яйца, овощи.",
+                     trainingOmad: "Говядина 250г, рис/гречка 250г, салат, банан, кефир",
+                     trainingLunch: "Обед: говядина 150г, рис 150г, банан. Ужин: яйца, овощи." }
             },
-            2: {}, 3: {}, 4: {}
+            2: {
+                1: { omad: "Яйца Бенедикт (2 яйца, ветчина, хлебцы), гречка 150г, творог 150г с мёдом",
+                     lunch: "Обед: индейка 150г, булгур 150г, салат. Ужин: творожная запеканка.",
+                     trainingOmad: "Яйца Бенедикт, гречка, творог, банан",
+                     trainingLunch: "Обед: индейка 150г, булгур 150г, банан. Ужин: творожная запеканка." },
+                2: { omad: "Филе трески запечённое 300г, картофель 200г, зелёная фасоль",
+                     lunch: "Обед: треска 150г, картофель 100г, фасоль. Ужин: омлет с овощами.",
+                     trainingOmad: "Треска, картофель, фасоль, банан",
+                     trainingLunch: "Обед: треска 150г, картофель 100г, фасоль, банан. Ужин: омлет." },
+                3: { omad: "Салат с тунцом (тунец с/с, 2 яйца, авокадо, помидор, сметанная заправка), гречка 150г, орехи 30г",
+                     lunch: "Обед: половина салата + булгур 100г. Ужин: остаток салата + творог 150г.",
+                     trainingOmad: "Салат с тунцом (с авокадо), гречка, орехи, банан",
+                     trainingLunch: "Обед: половина салата + булгур 100г, банан. Ужин: остаток + творог." },
+                4: { omad: "Куриные бёдра без кожи запечённые 350г, тушёная капуста, яйцо",
+                     lunch: "Обед: куриное филе 150г, капуста, хлебцы. Ужин: творог с зеленью.",
+                     trainingOmad: "Куриные бёдра, капуста, яйцо, банан",
+                     trainingLunch: "Обед: курица 150г, капуста, банан. Ужин: творог." },
+                5: { omad: "Скумбрия запечённая 200г, картофель 200г, морковь по-корейски (без сахара)",
+                     lunch: "Обед: скумбрия 100г, картофель 100г, морковь. Ужин: яичница с помидорами.",
+                     trainingOmad: "Скумбрия, картофель, морковь, банан",
+                     trainingLunch: "Обед: скумбрия 100г, картофель 100г, банан. Ужин: яичница." },
+                6: { omad: "Ленивые вареники (творог, яйцо, мука), сметана 15% 50г, замороженные ягоды",
+                     lunch: "Обед: творог 200г с ягодами, хлебец. Ужин: куриная грудка, салат.",
+                     trainingOmad: "Вареники, сметана, ягоды, банан",
+                     trainingLunch: "Обед: творог 200г, ягоды, хлебец, банан. Ужин: куриная грудка, салат." },
+                0: { omad: "Стейк из свиной вырезки 250г, булгур 200г, стручковая фасоль, банан",
+                     lunch: "Обед: свинина 150г, булгур 150г, фасоль. Ужин: творог 200г.",
+                     trainingOmad: "Стейк из свинины 250г, булгур 200г, фасоль, банан",
+                     trainingLunch: "Обед: свинина 150г, булгур 150г, фасоль, банан. Ужин: творог." }
+            },
+            3: {
+                1: { omad: "Омлет с шампиньонами и сыром, перловка 150г, творог 150г с орехами",
+                     lunch: "Обед: индейка 150г, перловка 150г, салат. Ужин: творог 200г.",
+                     trainingOmad: "Омлет с грибами, перловка, творог, банан",
+                     trainingLunch: "Обед: индейка 150г, перловка 150г, банан. Ужин: творог." },
+                2: { omad: "Хек запечённый 300г, картофель 200г, салат из свёклы с орехами",
+                     lunch: "Обед: хек 150г, картофель 100г, свёкла. Ужин: яйца пашот с зеленью.",
+                     trainingOmad: "Хек, картофель, свёкла, банан",
+                     trainingLunch: "Обед: хек 150г, картофель 100г, банан. Ужин: яйца." },
+                3: { omad: "Салат с тунцом (тунец с/с, 2 яйца, оливки, огурец, сметанная заправка), киноа 150г, орехи 30г",
+                     lunch: "Обед: половина салата + гречка 100г. Ужин: остаток + творог 150г.",
+                     trainingOmad: "Салат с тунцом, киноа, орехи, банан",
+                     trainingLunch: "Обед: половина салата + гречка 100г, банан. Ужин: остаток + творог." },
+                4: { omad: "Куриные крылья запечённые (без панировки) 350г, тушёная капуста с тмином, яйцо",
+                     lunch: "Обед: куриное филе 150г, капуста, хлебцы. Ужин: творог с зеленью.",
+                     trainingOmad: "Куриные крылья, капуста, яйцо, банан",
+                     trainingLunch: "Обед: куриное филе 150г, капуста, банан. Ужин: творог." },
+                5: { omad: "Селёдка под шубой (без майонеза, со сметаной 15%) 250г, картофель 200г",
+                     lunch: "Обед: селёдка 100г, картофель 100г, овощи. Ужин: творог с ягодами.",
+                     trainingOmad: "Селёдка под шубой, картофель, банан",
+                     trainingLunch: "Обед: селёдка 100г, картофель 100г, банан. Ужин: творог." },
+                6: { omad: "Творожная запеканка с яблоками, орехи, салат из свежих овощей",
+                     lunch: "Обед: творог 200г с яблоком, хлебец. Ужин: куриная грудка, салат.",
+                     trainingOmad: "Запеканка с яблоками, орехи, салат, банан",
+                     trainingLunch: "Обед: творог 200г, яблоко, хлебец, банан. Ужин: курица, салат." },
+                0: { omad: "Говядина тушёная с черносливом 250г, булгур 200г, салат из капусты, банан",
+                     lunch: "Обед: говядина 150г, булгур 150г, капуста. Ужин: творог 150г.",
+                     trainingOmad: "Говядина с черносливом, булгур, салат, банан",
+                     trainingLunch: "Обед: говядина 150г, булгур 150г, банан. Ужин: творог." }
+            },
+            4: {
+                1: { omad: "Яичница-глазунья с помидорами, гречка 150г, творог 150г с семенами льна",
+                     lunch: "Обед: куриная грудка 150г, гречка 150г, салат. Ужин: творог 200г.",
+                     trainingOmad: "Яичница, гречка, творог, банан",
+                     trainingLunch: "Обед: курица 150г, гречка 150г, банан. Ужин: творог." },
+                2: { omad: "Пангасиус запечённый 300г, картофель 200г, салат из морской капусты",
+                     lunch: "Обед: пангасиус 150г, картофель 100г, морская капуста. Ужин: яйца пашот.",
+                     trainingOmad: "Пангасиус, картофель, морская капуста, банан",
+                     trainingLunch: "Обед: пангасиус 150г, картофель 100г, банан. Ужин: яйца." },
+                3: { omad: "Салат с тунцом (тунец с/с, 2 яйца, помидоры, маслины, сметанная заправка с паприкой), булгур 150г, орехи 30г",
+                     lunch: "Обед: половина салата + булгур 100г. Ужин: остаток + творог 150г.",
+                     trainingOmad: "Салат с тунцом, булгур, орехи, банан",
+                     trainingLunch: "Обед: половина салата + булгур 100г, банан. Ужин: остаток + творог." },
+                4: { omad: "Куриное филе запечённое с травами 300г, тушёная капуста, яйцо",
+                     lunch: "Обед: куриное филе 150г, капуста, хлебцы. Ужин: омлет с овощами.",
+                     trainingOmad: "Куриное филе 300г, капуста, яйцо, банан",
+                     trainingLunch: "Обед: курица 150г, капуста, банан. Ужин: омлет." },
+                5: { omad: "Сёмга слабосолёная 150г, картофель 200г, салат из свёклы с орехами, творог 100г",
+                     lunch: "Обед: сёмга 100г, картофель 100г, свёкла. Ужин: творожная запеканка.",
+                     trainingOmad: "Сёмга, картофель, свёкла, творог, банан",
+                     trainingLunch: "Обед: сёмга 100г, картофель 100г, банан. Ужин: творог." },
+                6: { omad: "Сырники из творога (300г творога, 1 яйцо, мука), сметана 15%, ягоды",
+                     lunch: "Обед: творог 200г с ягодами, хлебцы. Ужин: куриная грудка, салат.",
+                     trainingOmad: "Сырники, сметана, ягоды, банан",
+                     trainingLunch: "Обед: творог 200г, ягоды, хлебцы, банан. Ужин: курица, салат." },
+                0: { omad: "Телятина запечённая 250г, рис с овощами 250г, банан, кефир",
+                     lunch: "Обед: телятина 150г, рис 150г, овощи. Ужин: яйца, салат.",
+                     trainingOmad: "Телятина, рис, овощи, банан, кефир",
+                     trainingLunch: "Обед: телятина 150г, рис 150г, банан. Ужин: яйца, салат." }
+            }
         };
-        // Заполним вариативно (кратко)
-        for (let w = 2; w <= 4; w++) {
-            MENU[w] = JSON.parse(JSON.stringify(MENU[1]));
-            // Меняем гарниры/источники белка
-        }
 
-        // ========== ПОЛЕЗНЫЕ ФУНКЦИИ ==========
-        function getDaySchedule(dateStr) {
-            const d = new Date(dateStr);
-            return d.getDay() === 0 ? SUNDAY_SCHEDULE : WEEKDAY_SCHEDULE;
-        }
+        // Функции получения меню
         function getDayMenu(dateStr, hasLunch, isTraining) {
             const d = new Date(dateStr);
-            const week = getWeekNumber(dateStr) % 4 + 1;
+            const week = ((getWeekNumber(dateStr) - 1) % 4) + 1;
             const dayOfWeek = d.getDay();
             const menuSet = MENU[week]?.[dayOfWeek] || MENU[1][1];
             if (isTraining) {
@@ -190,7 +336,13 @@
             return hasLunch ? menuSet.lunch : menuSet.omad;
         }
 
-        // ========== СОСТОЯНИЕ ДНЯ (localStorage) ==========
+        function isTrainingDay(dateStr) {
+            const d = new Date(dateStr);
+            if (d.getDay() === 0) return true;
+            const state = getDayState(dateStr);
+            return state.trainingDone || state.trainingMoved;
+        }
+
         function getDayState(dateStr) {
             const key = `dayState_${dateStr}`;
             const saved = localStorage.getItem(key);
@@ -200,10 +352,8 @@
             localStorage.setItem(`dayState_${dateStr}`, JSON.stringify(state));
         }
 
-        // ========== ОТРИСОВКА ЗАДАЧ ==========
         function renderTasks(containerId, schedule, dateStr) {
             const container = document.getElementById(containerId);
-            const state = getDayState(dateStr);
             container.innerHTML = schedule.map(item => {
                 const saved = JSON.parse(localStorage.getItem(`task_${dateStr}_${item.time.replace(':', '-')}`) || '{"done":false,"comment":""}');
                 const checked = saved.done ? 'checked' : '';
@@ -229,24 +379,21 @@
                 const cb = item.querySelector('.task-checkbox');
                 const commentInput = item.querySelector('.task-comment input');
                 cb.addEventListener('change', () => {
-                    const isDone = cb.checked;
-                    updateTask(date, time, isDone, commentInput.value);
-                    item.classList.toggle('completed', isDone);
+                    updateTask(date, time, cb.checked, commentInput.value);
+                    item.classList.toggle('completed', cb.checked);
                 });
                 commentInput.addEventListener('blur', () => updateTask(date, time, cb.checked, commentInput.value));
             });
         }
 
         function updateTask(dateStr, timeStr, done, comment) {
-            const key = `task_${dateStr}_${timeStr.replace(':', '-')}`;
-            localStorage.setItem(key, JSON.stringify({ done, comment }));
+            localStorage.setItem(`task_${dateStr}_${timeStr.replace(':', '-')}`, JSON.stringify({ done, comment }));
         }
 
         function escapeHtml(text) {
             return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
         }
 
-        // ========== ВКЛАДКА СЕГОДНЯ ==========
         function populateToday() {
             const dateStr = todayStr();
             const state = getDayState(dateStr);
@@ -258,6 +405,11 @@
             document.getElementById('dayTitle').textContent = `${days[d.getDay()]}, ${dateStr}`;
         }
 
+        function getDaySchedule(dateStr) {
+            const d = new Date(dateStr);
+            return d.getDay() === 0 ? SUNDAY_SCHEDULE : WEEKDAY_SCHEDULE;
+        }
+
         function toggleLunch() {
             const dateStr = todayStr();
             const state = getDayState(dateStr);
@@ -266,29 +418,37 @@
             populateToday();
         }
 
-        // ========== КАЛЕНДАРЬ ==========
         function loadCalendarDay() {
             const dateInput = document.getElementById('calendarDate');
             if (!dateInput.value) return;
             const dateStr = dateInput.value;
-            document.getElementById('calendarDate').value = dateStr;
             const schedule = getDaySchedule(dateStr);
             renderTasks('calendarTasks', schedule, dateStr);
         }
 
-        // ========== ПИТАНИЕ ==========
         function showNutrition() {
             const dateStr = todayStr();
             const state = getDayState(dateStr);
-            const isTraining = state.trainingDone || state.trainingMoved;
+            const isTraining = isTrainingDay(dateStr);
             const menu = getDayMenu(dateStr, state.lunch, isTraining);
-            const d = new Date();
-            const week = getWeekNumber(dateStr) % 4 + 1;
+            const week = ((getWeekNumber(dateStr) - 1) % 4) + 1;
             document.getElementById('weekLabel').textContent = `Неделя ${week}`;
             document.getElementById('nutritionContent').innerHTML = `<p><b>${state.lunch ? 'С обедом' : 'OMAD'}${isTraining ? ' (спорт)' : ''}:</b><br>${menu}</p>`;
         }
 
-        // ========== ТРЕНИРОВКА ==========
+        function showHistoryMenu() {
+            const dateInput = document.getElementById('historyDate');
+            if (!dateInput.value) return;
+            const dateStr = dateInput.value;
+            const state = getDayState(dateStr);
+            const isTraining = isTrainingDay(dateStr);
+            const menu = getDayMenu(dateStr, state.lunch, isTraining);
+            const week = ((getWeekNumber(dateStr) - 1) % 4) + 1;
+            document.getElementById('historyMenu').innerHTML = `<h4>Меню за ${dateStr} (неделя ${week})</h4>
+                <p><b>Режим:</b> ${state.lunch ? 'С обедом' : 'OMAD'} ${isTraining ? '(спорт)' : ''}</p>
+                <p>${menu}</p>`;
+        }
+
         function markTraining() {
             const dateStr = todayStr();
             const state = getDayState(dateStr);
@@ -331,7 +491,6 @@
                 : 'Тренировка не отмечена';
         }
 
-        // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
         function switchTab(tabId) {
             document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -342,11 +501,16 @@
                 document.getElementById('calendarDate').value = todayStr();
                 loadCalendarDay();
             }
-            if (tabId === 'nutrition') showNutrition();
+            if (tabId === 'nutrition') {
+                document.getElementById('historyDate').value = todayStr();
+                showNutrition();
+            }
             if (tabId === 'training') updateTrainingUI(todayStr());
+            if (tabId === 'shopping') {
+                // Закупка — статический контент, ничего не нужно инициализировать
+            }
         }
 
-        // ========== УВЕДОМЛЕНИЯ ==========
         const statusEl = document.getElementById('status');
         if (!window.isSecureContext) statusEl.innerHTML = '❌ Небезопасный контекст. Откройте через HTTPS.';
         if ('serviceWorker' in navigator && window.isSecureContext) {
@@ -369,7 +533,6 @@
             } else alert("Разрешите уведомления");
         }
 
-        // Старт
         populateToday();
         if (Notification.permission === 'granted' && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
