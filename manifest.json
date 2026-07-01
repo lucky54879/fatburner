@@ -1,0 +1,9 @@
+{
+    "name": "FatBurner Pro",
+    "short_name": "FatBurner",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#222222",
+    "theme_color": "#FF6B35",
+    "icons": []
+}
