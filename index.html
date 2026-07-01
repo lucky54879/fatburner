@@ -6,19 +6,30 @@
     <title>FatBurner Pro</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        body { background: #222; color: #fff; font-family: sans-serif; padding: 16px; margin: 0; }
-        h1 { text-align: center; color: #FF6B35; }
-        .tabs { display: flex; justify-content: center; margin: 16px 0; }
-        .tab { padding: 10px 16px; background: #333; margin: 0 4px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        * { box-sizing: border-box; }
+        body { background: #1e1e1e; color: #eee; font-family: sans-serif; padding: 16px; margin: 0; }
+        h1 { text-align: center; color: #FF6B35; margin-top: 0; }
+        .tabs { display: flex; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+        .tab { padding: 10px 16px; background: #333; margin: 4px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .tab.active { background: #FF6B35; color: #000; }
-        .content { display: none; background: #333; padding: 16px; border-radius: 8px; margin: 8px 0; }
+        .content { display: none; }
         .content.active { display: block; }
-        button { padding: 12px 24px; font-size: 16px; margin: 10px 4px; background: #FF6B35; border: none; color: white; border-radius: 6px; cursor: pointer; }
-        .status { margin-top: 20px; font-size: 14px; opacity: 0.9; white-space: pre-wrap; text-align: left; background: #1a1a1a; padding: 10px; border-radius: 6px; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 6px; }
-        .warning { color: #ff8888; }
-        .plan-day { margin-top: 10px; }
+        button { padding: 12px 20px; font-size: 16px; margin: 8px 4px; background: #FF6B35; border: none; color: white; border-radius: 6px; cursor: pointer; }
+        .status { margin: 16px 0; font-size: 14px; opacity: 0.9; white-space: pre-wrap; background: #2a2a2a; padding: 10px; border-radius: 6px; }
+        ul.task-list { list-style: none; padding: 0; }
+        li.task-item { background: #2a2a2a; margin: 8px 0; padding: 12px; border-radius: 8px; display: flex; flex-wrap: wrap; align-items: flex-start; transition: 0.2s; }
+        li.task-item.completed { opacity: 0.5; }
+        li.task-item.completed .task-text { text-decoration: line-through; color: #888; }
+        .task-checkbox { margin-right: 12px; width: 20px; height: 20px; accent-color: #FF6B35; flex-shrink: 0; margin-top: 2px; }
+        .task-content { flex: 1; min-width: 200px; }
+        .task-time { font-weight: bold; color: #FF6B35; margin-right: 8px; white-space: nowrap; }
+        .task-text { color: #ddd; }
+        .task-comment { margin-top: 6px; }
+        .task-comment input { width: 100%; background: #1e1e1e; border: 1px solid #555; color: #eee; padding: 6px 8px; border-radius: 4px; font-size: 13px; }
+        .calendar-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .calendar-controls input[type="date"] { background: #2a2a2a; border: 1px solid #555; color: #eee; padding: 10px; border-radius: 6px; font-size: 16px; }
+        .calendar-controls button { margin: 0; }
+        .section-title { color: #FF6B35; margin: 16px 0 8px; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -32,19 +43,30 @@
     <!-- Вкладки -->
     <div class="tabs">
         <div class="tab active" onclick="switchTab('today')">📅 Сегодня</div>
+        <div class="tab" onclick="switchTab('calendar')">🗓️ Календарь</div>
         <div class="tab" onclick="switchTab('nutrition')">🍽 Питание</div>
         <div class="tab" onclick="switchTab('training')">🏋️ Тренировка</div>
     </div>
 
-    <!-- План на сегодня -->
+    <!-- Сегодня -->
     <div id="today" class="content active">
         <h3>План на <span id="dayName"></span></h3>
-        <ul id="todaySchedule"></ul>
+        <ul class="task-list" id="todayTasks"></ul>
     </div>
 
-    <!-- Питание на неделю -->
+    <!-- Календарь -->
+    <div id="calendar" class="content">
+        <h3>Календарь задач</h3>
+        <div class="calendar-controls">
+            <input type="date" id="calendarDate">
+            <button onclick="loadCalendarDay()">📋 Показать</button>
+        </div>
+        <ul class="task-list" id="calendarTasks"></ul>
+    </div>
+
+    <!-- Питание (без изменений) -->
     <div id="nutrition" class="content">
-        <h3>Меню на неделю (OMAD, 19:00)</h3>
+        <h3>Меню на неделю (OMAD, ~19:00)</h3>
         <ul>
             <li><b>Пн:</b> Омлет из 4 яиц+2 белка со шпинатом и кабачками, гречка 150 г с маслом, творог 150 г с льном и грецкими орехами</li>
             <li><b>Вт:</b> Минтай запечённый 300 г, картофель 200 г, салат из свёклы с чесноком</li>
@@ -56,7 +78,7 @@
         </ul>
     </div>
 
-    <!-- Тренировка -->
+    <!-- Тренировка (без изменений) -->
     <div id="training" class="content">
         <h3>Воскресная тренировка с гирей 20 кг</h3>
         <p><b>Разминка (8 мин):</b> ходьба, круговые движения стопами, подъёмы на носки, короткая стопа, выпады для растяжки сгибателей бедра.</p>
@@ -75,16 +97,154 @@
     </div>
 
     <script>
-        const statusEl = document.getElementById('status');
-        const todayScheduleEl = document.getElementById('todaySchedule');
-        const dayNameEl = document.getElementById('dayName');
+        // ---------- Расписания (синхронизированы с sw.js) ----------
+        const WEEKDAY_SCHEDULE = [
+            { time: '05:40', text: 'Подъём, 2 стакана воды, дыхание' },
+            { time: '08:00', text: 'Стакан воды' },
+            { time: '10:00', text: 'Мини-комплекс для стоп и осанки (см. Тренировка)' },
+            { time: '12:00', text: 'Чёрный кофе 400 мл' },
+            { time: '12:30', text: 'Прогулка 20-30 мин' },
+            { time: '14:00', text: 'Мини-комплекс + вода' },
+            { time: '16:00', text: 'Мини-комплекс + вода' },
+            { time: '19:00', text: 'Основной приём пищи (OMAD) – см. меню дня' },
+            { time: '21:30', text: 'Готовиться ко сну, отбой до 23:00' }
+        ];
 
-        // Проверка безопасного контекста
+        const SUNDAY_SCHEDULE = [
+            { time: '05:40', text: 'Подъём, вода' },
+            { time: '08:00', text: 'Вода, можно 2 яйца (если голоден)' },
+            { time: '10:00', text: 'Активация стоп (мини-комплекс)' },
+            { time: '12:00', text: 'Чёрный кофе' },
+            { time: '13:00', text: 'Подготовка к тренировке (гиря, коврик)' },
+            { time: '14:00', text: 'ТРЕНИРОВКА С ГИРЕЙ (см. вкладку Тренировка)' },
+            { time: '18:00', text: 'Ужин после тренировки: говядина, рис/гречка, салат, банан, кефир' },
+            { time: '21:30', text: 'Отбой до 23:00' }
+        ];
+
+        // ---------- Состояние и localStorage ----------
+        function getStorageKey(dateStr, timeStr) {
+            return `task_${dateStr}_${timeStr.replace(':', '-')}`;
+        }
+
+        function getTaskState(dateStr, timeStr) {
+            const key = getStorageKey(dateStr, timeStr);
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try { return JSON.parse(saved); } catch(e) { return { done: false, comment: '' }; }
+            }
+            return { done: false, comment: '' };
+        }
+
+        function saveTaskState(dateStr, timeStr, state) {
+            const key = getStorageKey(dateStr, timeStr);
+            localStorage.setItem(key, JSON.stringify(state));
+        }
+
+        // ---------- Отрисовка списка задач ----------
+        function renderTasks(containerId, schedule, dateStr) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = schedule.map(item => {
+                const state = getTaskState(dateStr, item.time);
+                const checkedAttr = state.done ? 'checked' : '';
+                const completedClass = state.done ? 'completed' : '';
+                return `
+                    <li class="task-item ${completedClass}" data-date="${dateStr}" data-time="${item.time}">
+                        <input type="checkbox" class="task-checkbox" ${checkedAttr}>
+                        <div class="task-content">
+                            <span class="task-time">${item.time}</span>
+                            <span class="task-text">${item.text}</span>
+                            <div class="task-comment">
+                                <input type="text" placeholder="Примечание..." value="${escapeHtml(state.comment)}" maxlength="200">
+                            </div>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+
+            // Навешиваем обработчики
+            container.querySelectorAll('.task-item').forEach(item => {
+                const date = item.dataset.date;
+                const time = item.dataset.time;
+                const checkbox = item.querySelector('.task-checkbox');
+                const commentInput = item.querySelector('.task-comment input');
+
+                checkbox.addEventListener('change', function() {
+                    const isDone = this.checked;
+                    updateTaskState(date, time, isDone, commentInput.value);
+                    item.classList.toggle('completed', isDone);
+                });
+
+                commentInput.addEventListener('blur', function() {
+                    updateTaskState(date, time, checkbox.checked, this.value);
+                });
+            });
+        }
+
+        function updateTaskState(dateStr, timeStr, done, comment) {
+            const state = { done, comment };
+            saveTaskState(dateStr, timeStr, state);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m];
+            });
+        }
+
+        // ---------- Заполнение "Сегодня" ----------
+        function getTodayDateStr() {
+            const d = new Date();
+            return d.toISOString().split('T')[0]; // YYYY-MM-DD
+        }
+
+        function populateToday() {
+            const now = new Date();
+            const day = now.getDay(); // 0 вс, 1 пн...
+            const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            document.getElementById('dayName').textContent = days[day];
+            const schedule = (day === 0) ? SUNDAY_SCHEDULE : WEEKDAY_SCHEDULE;
+            const dateStr = getTodayDateStr();
+            renderTasks('todayTasks', schedule, dateStr);
+        }
+
+        // ---------- Календарь ----------
+        function loadCalendarDay() {
+            const dateInput = document.getElementById('calendarDate');
+            if (!dateInput.value) {
+                alert('Выберите дату');
+                return;
+            }
+            const selectedDate = dateInput.value; // YYYY-MM-DD
+            const dayOfWeek = new Date(selectedDate + 'T00:00:00').getDay();
+            const schedule = (dayOfWeek === 0) ? SUNDAY_SCHEDULE : WEEKDAY_SCHEDULE;
+            renderTasks('calendarTasks', schedule, selectedDate);
+        }
+
+        // Установим сегодняшнюю дату по умолчанию в календаре
+        function setDefaultCalendarDate() {
+            const dateInput = document.getElementById('calendarDate');
+            if (dateInput) {
+                dateInput.value = getTodayDateStr();
+            }
+        }
+
+        // ---------- Вкладки ----------
+        function switchTab(tabId) {
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            if (tabId === 'today') populateToday();
+            if (tabId === 'calendar') setDefaultCalendarDate();
+        }
+
+        // ---------- Уведомления (прежние) ----------
+        const statusEl = document.getElementById('status');
         if (!window.isSecureContext) {
             statusEl.innerHTML = '❌ <span class="warning">Небезопасный контекст!</span>\n\nОткройте через HTTPS (GitHub Pages).';
         }
 
-        // Service Worker
         if ('serviceWorker' in navigator && window.isSecureContext) {
             navigator.serviceWorker.register('sw.js')
                 .then(reg => {
@@ -108,11 +268,9 @@
             }
             Notification.requestPermission().then(perm => {
                 statusEl.textContent = 
-                    perm === "granted" ? "✅ Уведомления включены" : "❌ Разрешение не получено (нажмите ещё раз или проверьте настройки браузера)";
+                    perm === "granted" ? "✅ Уведомления включены" : "❌ Разрешение не получено";
                 if (perm === "granted" && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
-                } else if (perm === "granted") {
-                    statusEl.textContent += '\n⚠️ Service Worker не контролирует страницу. Попробуйте перезагрузить приложение.';
                 }
             });
         }
@@ -131,55 +289,11 @@
 
         if (Notification.permission === "granted" && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
-            statusEl.textContent = '✅ Разрешение уже дано, расписание активно.';
         }
 
-        // Переключение вкладок
-        function switchTab(tabId) {
-            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
-        }
-
-        // Заполнение плана на сегодня
-        function populateTodaySchedule() {
-            const now = new Date();
-            const day = now.getDay(); // 0 - вс, 1 - пн, ...
-            const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-            dayNameEl.textContent = days[day];
-
-            const weekdaySchedule = [
-                { time: '05:40', event: 'Подъём, 2 стакана воды, дыхание' },
-                { time: '08:00', event: 'Стакан воды' },
-                { time: '10:00', event: 'Мини-комплекс для стоп и осанки (см. Тренировка)' },
-                { time: '12:00', event: 'Чёрный кофе 400 мл' },
-                { time: '12:30', event: 'Прогулка 20-30 мин' },
-                { time: '14:00', event: 'Мини-комплекс + вода' },
-                { time: '16:00', event: 'Мини-комплекс + вода' },
-                { time: '19:00', event: 'ОСНОВНОЙ ПРИЁМ ПИЩИ (OMAD) – см. меню дня' },
-                { time: '21:30', event: 'Готовиться ко сну, отбой до 23:00' }
-            ];
-            const sundaySchedule = [
-                { time: '05:40', event: 'Подъём, вода' },
-                { time: '08:00', event: 'Вода, можно 2 яйца (если голоден)' },
-                { time: '10:00', event: 'Активация стоп (мини-комплекс)' },
-                { time: '12:00', event: 'Чёрный кофе' },
-                { time: '13:00', event: 'Подготовка к тренировке (гиря, коврик)' },
-                { time: '14:00', event: 'ТРЕНИРОВКА С ГИРЕЙ (см. вкладку Тренировка)' },
-                { time: '18:00', event: 'Ужин после тренировки: говядина, рис/гречка, салат, банан, кефир' },
-                { time: '21:30', event: 'Отбой до 23:00' }
-            ];
-
-            const schedule = day === 0 ? sundaySchedule : weekdaySchedule;
-            todayScheduleEl.innerHTML = schedule.map(item => 
-                `<li><b>${item.time}</b> – ${item.event}</li>`
-            ).join('');
-        }
-
-        populateTodaySchedule();
-        // Автоматически обновлять план в полночь (если приложение открыто)
-        setInterval(populateTodaySchedule, 60000); // на случай, если день перевалит
+        // ---------- Инициализация ----------
+        populateToday();
+        setDefaultCalendarDate();
     </script>
 </body>
 </html>
