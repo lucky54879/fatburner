@@ -6,34 +6,85 @@
     <title>FatBurner Pro</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        body { background: #222; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
-        button { padding: 12px 24px; font-size: 16px; margin: 10px; background: #FF6B35; border: none; color: white; border-radius: 6px; }
-        .status { margin-top: 20px; font-size: 14px; opacity: 0.9; white-space: pre-wrap; text-align: left; max-width: 300px; margin-left: auto; margin-right: auto; }
+        body { background: #222; color: #fff; font-family: sans-serif; padding: 16px; margin: 0; }
+        h1 { text-align: center; color: #FF6B35; }
+        .tabs { display: flex; justify-content: center; margin: 16px 0; }
+        .tab { padding: 10px 16px; background: #333; margin: 0 4px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .tab.active { background: #FF6B35; color: #000; }
+        .content { display: none; background: #333; padding: 16px; border-radius: 8px; margin: 8px 0; }
+        .content.active { display: block; }
+        button { padding: 12px 24px; font-size: 16px; margin: 10px 4px; background: #FF6B35; border: none; color: white; border-radius: 6px; cursor: pointer; }
+        .status { margin-top: 20px; font-size: 14px; opacity: 0.9; white-space: pre-wrap; text-align: left; background: #1a1a1a; padding: 10px; border-radius: 6px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
         .warning { color: #ff8888; }
+        .plan-day { margin-top: 10px; }
     </style>
 </head>
 <body>
     <h1>🔥 FatBurner Pro</h1>
-    <p>Гиря 20 кг • OMAD • Колени • Таз</p>
-    <button onclick="requestPermission()">🔔 Включить напоминания</button>
-    <button onclick="testNotification()">🧪 Тест уведомления</button>
+    <div style="text-align:center;">
+        <button onclick="requestPermission()">🔔 Включить напоминания</button>
+        <button onclick="testNotification()">🧪 Тест</button>
+    </div>
     <div class="status" id="status">Загрузка...</div>
+
+    <!-- Вкладки -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('today')">📅 Сегодня</div>
+        <div class="tab" onclick="switchTab('nutrition')">🍽 Питание</div>
+        <div class="tab" onclick="switchTab('training')">🏋️ Тренировка</div>
+    </div>
+
+    <!-- План на сегодня -->
+    <div id="today" class="content active">
+        <h3>План на <span id="dayName"></span></h3>
+        <ul id="todaySchedule"></ul>
+    </div>
+
+    <!-- Питание на неделю -->
+    <div id="nutrition" class="content">
+        <h3>Меню на неделю (OMAD, 19:00)</h3>
+        <ul>
+            <li><b>Пн:</b> Омлет из 4 яиц+2 белка со шпинатом и кабачками, гречка 150 г с маслом, творог 150 г с льном и грецкими орехами</li>
+            <li><b>Вт:</b> Минтай запечённый 300 г, картофель 200 г, салат из свёклы с чесноком</li>
+            <li><b>Ср:</b> Куриные сердечки тушёные 300 г (или сайра), гречка 150 г, салат из капусты</li>
+            <li><b>Чт:</b> Запечённые куриные голени 350 г, квашеная капуста 200 г, яйцо, тыквенные семечки</li>
+            <li><b>Пт:</b> Селёдка 200 г, картофель 200 г, свёкла с льняным маслом, творог 100 г</li>
+            <li><b>Сб:</b> Запеканка творожная (300 г творога, 2 яйца), арахисовая паста/орехи, салат из помидоров и огурцов</li>
+            <li><b>Вс (спорт):</b> Говядина 250 г, рис/гречка 250 г, салат, банан, кефир (2100 ккал)</li>
+        </ul>
+    </div>
+
+    <!-- Тренировка -->
+    <div id="training" class="content">
+        <h3>Воскресная тренировка с гирей 20 кг</h3>
+        <p><b>Разминка (8 мин):</b> ходьба, круговые движения стопами, подъёмы на носки, короткая стопа, выпады для растяжки сгибателей бедра.</p>
+        <p><b>Круг (4 раза):</b></p>
+        <ul>
+            <li>Махи гирей двумя руками — 15 раз</li>
+            <li>Приседания с гирей на груди — 12 раз (стопы активно)</li>
+            <li>Тяга гири в наклоне — 12/рука</li>
+            <li>Жим гири стоя попеременный — 10/рука</li>
+            <li>Выпады назад с гирей у груди — 10/нога</li>
+            <li>Боковая планка на локте — 30 сек/сторона</li>
+            <li>Ягодичный мостик на одной ноге — 12/нога</li>
+        </ul>
+        <p><b>Заминка (8 мин):</b> растяжка сгибателей бедра, квадрицепсов, «собака-кошка», дыхание животом.</p>
+        <p><b>Ежедневные мини-комплексы</b> (по будням в 10:00, 14:00, 16:00): подъёмы на носки 20 раз, «короткая стопа» 5×10 сек, сжатие ягодиц + втягивание живота 10 раз, наклон таза кзади 8 раз.</p>
+    </div>
 
     <script>
         const statusEl = document.getElementById('status');
+        const todayScheduleEl = document.getElementById('todaySchedule');
+        const dayNameEl = document.getElementById('dayName');
 
-        // 1. Проверка безопасного контекста
+        // Проверка безопасного контекста
         if (!window.isSecureContext) {
-            statusEl.innerHTML = '❌ <span class="warning">Небезопасный контекст!</span>\n\n' +
-                'Вы открыли файл напрямую (file://).\n' +
-                'Chrome блокирует уведомления.\n\n' +
-                '👉 Нужно открыть приложение по HTTPS:\n' +
-                '   • Загрузи файлы на GitHub Pages\n' +
-                '   • Или используй локальный сервер\n\n' +
-                'После этого кнопка «Включить» заработает.';
+            statusEl.innerHTML = '❌ <span class="warning">Небезопасный контекст!</span>\n\nОткройте через HTTPS (GitHub Pages).';
         }
 
-        // Регистрируем Service Worker (только в безопасном контексте)
+        // Service Worker
         if ('serviceWorker' in navigator && window.isSecureContext) {
             navigator.serviceWorker.register('sw.js')
                 .then(reg => {
@@ -44,13 +95,11 @@
                     console.error('Ошибка SW', err);
                     statusEl.textContent += '\n❌ Ошибка регистрации SW: ' + err.message;
                 });
-        } else if ('serviceWorker' in navigator && !window.isSecureContext) {
-            statusEl.textContent += '\n⚠️ Service Worker не зарегистрирован (небезопасный контекст).';
         }
 
         function requestPermission() {
             if (!window.isSecureContext) {
-                alert('Нельзя запросить разрешение: нет HTTPS.\nОткройте приложение через GitHub Pages или локальный сервер (http://localhost).');
+                alert('Нельзя запросить разрешение: нет HTTPS.\nОткройте приложение через GitHub Pages.');
                 return;
             }
             if (!("Notification" in window)) {
@@ -84,6 +133,53 @@
             navigator.serviceWorker.controller.postMessage({ action: 'startSchedule' });
             statusEl.textContent = '✅ Разрешение уже дано, расписание активно.';
         }
+
+        // Переключение вкладок
+        function switchTab(tabId) {
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // Заполнение плана на сегодня
+        function populateTodaySchedule() {
+            const now = new Date();
+            const day = now.getDay(); // 0 - вс, 1 - пн, ...
+            const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            dayNameEl.textContent = days[day];
+
+            const weekdaySchedule = [
+                { time: '05:40', event: 'Подъём, 2 стакана воды, дыхание' },
+                { time: '08:00', event: 'Стакан воды' },
+                { time: '10:00', event: 'Мини-комплекс для стоп и осанки (см. Тренировка)' },
+                { time: '12:00', event: 'Чёрный кофе 400 мл' },
+                { time: '12:30', event: 'Прогулка 20-30 мин' },
+                { time: '14:00', event: 'Мини-комплекс + вода' },
+                { time: '16:00', event: 'Мини-комплекс + вода' },
+                { time: '19:00', event: 'ОСНОВНОЙ ПРИЁМ ПИЩИ (OMAD) – см. меню дня' },
+                { time: '21:30', event: 'Готовиться ко сну, отбой до 23:00' }
+            ];
+            const sundaySchedule = [
+                { time: '05:40', event: 'Подъём, вода' },
+                { time: '08:00', event: 'Вода, можно 2 яйца (если голоден)' },
+                { time: '10:00', event: 'Активация стоп (мини-комплекс)' },
+                { time: '12:00', event: 'Чёрный кофе' },
+                { time: '13:00', event: 'Подготовка к тренировке (гиря, коврик)' },
+                { time: '14:00', event: 'ТРЕНИРОВКА С ГИРЕЙ (см. вкладку Тренировка)' },
+                { time: '18:00', event: 'Ужин после тренировки: говядина, рис/гречка, салат, банан, кефир' },
+                { time: '21:30', event: 'Отбой до 23:00' }
+            ];
+
+            const schedule = day === 0 ? sundaySchedule : weekdaySchedule;
+            todayScheduleEl.innerHTML = schedule.map(item => 
+                `<li><b>${item.time}</b> – ${item.event}</li>`
+            ).join('');
+        }
+
+        populateTodaySchedule();
+        // Автоматически обновлять план в полночь (если приложение открыто)
+        setInterval(populateTodaySchedule, 60000); // на случай, если день перевалит
     </script>
 </body>
 </html>
